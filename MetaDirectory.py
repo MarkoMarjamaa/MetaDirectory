@@ -10,7 +10,7 @@ import comtypes.shelllink
 import comtypes.client
 import comtypes.persist
 
-if len(sys.argv) < 4:
+if len(sys.argv) < 5:
 	print "Usage"
 	print '  %s "Target Dir" "XSLT File" "Source Dir" "Static.XML"' % sys.argv[0]
 	sys.exit(2)
@@ -52,12 +52,26 @@ print "SourceDirectory : %s " % strSourceRoot.encode(sys.stdout.encoding, 'repla
 for strRoot, __, straFilenames in os.walk(strSourceRoot):
 	# Loop files
 	for strFilename in straFilenames:
-		# Filter only XML files
-		if strFilename.endswith(".xml") is True:
-			strXMLPathFilename = os.path.join(strRoot, strFilename)
-			strDocPathFilename, __ = os.path.splitext(strXMLPathFilename)
-			# Filter only those that have media file
-			if os.path.isfile(strDocPathFilename):
+
+		# Try to find ADS file 
+		strDocPathFilename = os.path.join(strRoot, strFilename)
+		strXMLPathFilename = strDocPathFilename + ":MetaDirectory.xml"
+		# If ADS file does not exist tr with XML file 
+		if os.path.isfile(strXMLPathFilename) is False:
+			strXMLPathFilename = None
+			strDocPathFilename = None
+		
+			# Check if file is XML file
+			if strFilename.endswith(".xml") is True:
+				strXMLPathFilename = os.path.join(strRoot, strFilename)
+				strDocPathFilename, __ = os.path.splitext(strXMLPathFilename)
+				# Filter only those that have media file
+				if os.path.isfile(strDocPathFilename) is False:
+					strXMLPathFilename = None
+					strDocPathFilename = None
+
+		# If ADS or XML file is found 
+		if strXMLPathFilename is not None:
 				print "File : %s " % strDocPathFilename.encode(sys.stdout.encoding, 'replace')
 				# Create XML object
 				xmlRoot = etree.Element('data')
